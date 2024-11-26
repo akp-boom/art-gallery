@@ -1,105 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Art Challenge</title>
-  <script type="module">
-    // Import Firebase modules
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
-    import { getDatabase, ref as dbRef, set, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+// Constants
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDiVWfJdqJO4XL9EN9AATGPe95owwTI5oM",
-      authDomain: "art-challangr.firebaseapp.com",
-      projectId: "art-challangr",
-      storageBucket: "art-challangr.firebasestorage.app",
-      messagingSenderId: "567075818296",
-      appId: "1:567075818296:web:cd4cf4a65b90a1df5acfcd"
+// Event Listener for the Upload Form
+document.getElementById('uploadForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+
+  if (file) {
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      alert('File size exceeds 5MB. Please upload a smaller image.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      const imageData = event.target.result;
+
+      // Check for duplicate images
+      if (isImageDuplicate(imageData)) {
+        alert('This image has already been uploaded!');
+        return;
+      }
+
+      try {
+        // Save image to localStorage
+        saveImageToLocalStorage(imageData);
+
+        // Add image to the gallery
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.style.width = '200px';
+        img.style.height = 'auto';
+        document.getElementById('drawingGallery').appendChild(img);
+
+        console.log('Image uploaded successfully!');
+      } catch (error) {
+        console.error('Error saving image:', error);
+        alert('An error occurred while uploading the image. Please try again.');
+      }
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
+    reader.onerror = function (error) {
+      console.error('Error reading file:', error);
+      alert('There was an issue reading the file. Please try a different file.');
+    };
 
-    // Get references to Firebase services
-    const storage = getStorage(app);
-    const database = getDatabase(app);
+    reader.readAsDataURL(file); // Read file as Base64 string
+  } else {
+    alert('Please select a file to upload.');
+  }
+});
 
-    // Select HTML elements
-    const fileInput = document.getElementById('fileInput');
-    const uploadForm = document.getElementById('uploadForm');
+// Function to Save an Image to LocalStorage
+function saveImageToLocalStorage(imageData) {
+  let images = JSON.parse(localStorage.getItem('images')) || [];
 
-    // Upload image handling
-    uploadForm.addEventListener('submit', function (e) {
-      e.preventDefault();  // Prevent default form submission
-
-      const file = fileInput.files[0];  // Get the selected file
-      if (file && file.size <= 5 * 1024 * 1024) {  // Validate file size
-        const storageRef = ref(storage, 'drawings/' + file.name);  // Reference to Firebase Storage
-        uploadBytes(storageRef, file).then((snapshot) => {  // Upload file
-          console.log('Uploaded a file!', snapshot);
-          getDownloadURL(snapshot.ref).then((downloadURL) => {  // Get the download URL of the image
-            saveImageURLToDatabase(downloadURL);  // Save the URL to Firebase Realtime Database
-          });
-        });
-      } else {
-        alert('File size is too large! Maximum size is 5MB.');
-      }
-    });
-
-    // Save the image URL in Firebase Realtime Database
-    function saveImageURLToDatabase(url) {
-      const imagesRef = dbRef(database, 'images');  // Reference to images node in DB
-      const newImageRef = push(imagesRef);  // Create a new entry for the image
-      set(newImageRef, {
-        url: url,
-        timestamp: Date.now()  // Save the timestamp to order images later
-      }).then(function () {
-        alert('Image uploaded successfully!');
-        loadImages();  // Refresh the gallery
-      }).catch(function (error) {
-        alert('Error saving image URL: ' + error.message);
-      });
+  try {
+    images.push(imageData); // Add new image to the list
+    localStorage.setItem('images', JSON.stringify(images)); // Save updated list to localStorage
+  } catch (error) {
+    if (isQuotaExceeded(error)) {
+      alert('Storage limit exceeded! Please clear the gallery or reduce image sizes.');
+    } else {
+      console.error('Error storing image:', error);
+      throw error;
     }
+  }
+}
 
-    // Display images from Firebase Realtime Database
-    function loadImages() {
-      const imagesRef = dbRef(database, 'images');  // Reference to images node in DB
-      imagesRef.once('value').then(function(snapshot) {
-        const imagesContainer = document.getElementById('imagesContainer');
-        imagesContainer.innerHTML = '';  // Clear the gallery
-        snapshot.forEach(function(childSnapshot) {
-          const imageData = childSnapshot.val();
-          const imgElement = document.createElement('img');
-          imgElement.src = imageData.url;  // Set the image URL
-          imgElement.alt = 'Uploaded Artwork';
-          imgElement.style.width = '200px';
-          imgElement.style.margin = '10px';
-          imagesContainer.appendChild(imgElement);  // Add image to the gallery
-        });
-      });
+// Function to Check if an Image is a Duplicate
+function isImageDuplicate(imageData) {
+  const images = JSON.parse(localStorage.getItem('images')) || [];
+  return images.includes(imageData);
+}
+
+// Function to Check if the Storage Quota is Exceeded
+function isQuotaExceeded(e) {
+  if (e) {
+    if (e.code === 22 || e.code === 1014 || e.name === 'QuotaExceededError') {
+      return true;
     }
+  }
+  return false;
+}
 
-    // Load images when the page loads
-    window.onload = loadImages;
+// Function to Load Images from LocalStorage into the Gallery
+function loadImagesFromLocalStorage() {
+  const images = JSON.parse(localStorage.getItem('images')) || [];
+  const gallery = document.getElementById('drawingGallery');
 
-  </script>
-</head>
-<body>
-  <h1>Art Challenge</h1>
+  images.forEach(function (imageData) {
+    const img = document.createElement('img');
+    img.src = imageData;
+    img.style.width = '200px';
+    img.style.height = 'auto';
+    gallery.appendChild(img);
+  });
+}
 
-  <form id="uploadForm">
-    <label for="fileInput">Upload your drawing (Max 5MB):</label><br>
-    <input type="file" id="fileInput" accept="image/*"><br><br>
-    <button type="submit">Upload</button>
-  </form>
+// Function to Clear the Gallery and LocalStorage
+function clearGallery() {
+  if (confirm('Are you sure you want to clear all images from the gallery?')) {
+    localStorage.removeItem('images'); // Remove all images from localStorage
+    document.getElementById('drawingGallery').innerHTML = ''; // Clear the gallery on the page
+    alert('Gallery cleared!');
+  }
+}
 
-  <h2>Gallery</h2>
-  <div id="imagesContainer">
-    <!-- Images will be displayed here -->
-  </div>
-
-</body>
-</html>
+// Load Images When the Page is Loaded
+window.onload = function () {
+  try {
+    loadImagesFromLocalStorage(); // Load persisted images into the gallery
+    console.log('Images loaded successfully from localStorage.');
+  } catch (error) {
+    console.error('Error loading images from localStorage:', error);
+  }
+};
