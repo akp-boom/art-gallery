@@ -7,6 +7,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
 
   if (file) {
     const reader = new FileReader();
+
     reader.onload = function(event) {
       // Get the image data URL (Base64 string)
       const imageData = event.target.result;
@@ -17,6 +18,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
         return;  // Stop if it's a duplicate
       }
 
+      // Save the image in localStorage and update the gallery
+      saveImageToLocalStorage(imageData);
+
       // Create an image element and append it to the gallery
       const img = document.createElement('img');
       img.src = imageData;
@@ -26,11 +30,17 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
       // Add the image to the gallery
       const gallery = document.getElementById('drawingGallery');
       gallery.appendChild(img);
-
-      // Save the image in localStorage
-      saveImageToLocalStorage(imageData);
     };
-    reader.readAsDataURL(file);
+
+    // Handle any errors while reading the file
+    reader.onerror = function(error) {
+      console.error("Error reading file:", error);
+      alert("There was an issue uploading the image. Please try again.");
+    };
+
+    reader.readAsDataURL(file);  // Start reading the file as Base64
+  } else {
+    alert("Please select a file to upload.");
   }
 });
 
