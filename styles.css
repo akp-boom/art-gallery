@@ -1,0 +1,48 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  text-align: center;
+  background-color: #6a5acd;
+  color: white;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  color: #6a5acd;
+}
+
+#upload, #gallery {
+  margin: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+button {
+  background-color: #6a5acd;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #5a4abf;
+}
+
+#drawingGallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
