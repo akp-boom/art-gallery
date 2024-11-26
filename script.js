@@ -1,3 +1,6 @@
+// Maximum file size (5MB in bytes)
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 document.getElementById('uploadForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -5,6 +8,12 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
   const file = fileInput.files[0];
 
   if (file) {
+    // Check the file size
+    if (file.size > MAX_FILE_SIZE) {
+      alert('File size exceeds 5MB. Please upload a smaller image.');
+      return; // Stop the upload process
+    }
+
     const reader = new FileReader();
 
     reader.onload = function (event) {
@@ -13,11 +22,11 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       // Check if the image is a duplicate
       if (isImageDuplicate(imageData)) {
         alert('This image has already been uploaded!');
-        return;
+        return; // Stop if it's a duplicate
       }
 
       try {
-        // Save image and update the gallery
+        // Save the image to localStorage and update the gallery
         saveImageToLocalStorage(imageData);
 
         const img = document.createElement('img');
@@ -38,7 +47,7 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       alert('There was an issue reading the file. Please try a different file.');
     };
 
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Start reading the file as Base64
   } else {
     alert('Please select a file to upload.');
   }
