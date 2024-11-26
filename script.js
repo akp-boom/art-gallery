@@ -1,4 +1,23 @@
-// Constants
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiVWfJdqJO4XL9EN9AATGPe95owwTI5oM",
+    authDomain: "art-challangr.firebaseapp.com",
+    projectId: "art-challangr",
+    storageBucket: "art-challangr.firebasestorage.app",
+    messagingSenderId: "567075818296",
+    appId: "1:567075818296:web:cd4cf4a65b90a1df5acfcd"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+  // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 // Event Listener for the Upload Form
