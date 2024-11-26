@@ -7,7 +7,13 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      color: #000080; /* Blue text color */
+      background-color: #f0f8ff; /* Light blue background */
       margin: 20px;
+    }
+
+    h1, h2 {
+      color: #000080; /* Darker blue for headings */
     }
 
     #uploadForm {
@@ -15,17 +21,23 @@
     }
 
     #drawingGallery img {
-      margin: 10px;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      padding: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      margin: 5px;
+      border: 1px solid #000080;
+      padding: 2px;
+    }
+
+    p {
+      font-size: 16px;
+    }
+
+    label {
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <h1>Drawing & Art Challenges</h1>
-  <p>Welcome! Upload your drawings and share them with the community. Featured drawings will be displayed below.</p>
+  <p>Upload your artwork and share it with the community. Maximum file size is 5MB, and duplicate images will not be accepted.</p>
 
   <!-- Form for uploading drawings -->
   <form id="uploadForm">
