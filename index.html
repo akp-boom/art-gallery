@@ -3,147 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drawing & Art Challenges</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      color: #000080; /* Blue text color */
-      background-color: #f0f8ff; /* Light blue background */
-      margin: 20px;
-    }
-
-    h1, h2 {
-      color: #000080; /* Darker blue for headings */
-    }
-
-    #uploadForm {
-      margin-bottom: 20px;
-    }
-
-    #drawingGallery img {
-      margin: 5px;
-      border: 1px solid #000080;
-      padding: 2px;
-    }
-
-    p {
-      font-size: 16px;
-    }
-
-    label {
-      font-size: 14px;
-    }
-  </style>
+  <title>Art Challenge</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Drawing & Art Challenges</h1>
-  <p>Upload your artwork and share it with the community. Maximum file size is 5MB, and duplicate images will not be accepted.</p>
+  <header>
+    <h1>Welcome to the Art Challenge!</h1>
+    <p>Submit your drawings and join challenges!</p>
+  </header>
 
-  <!-- Form for uploading drawings -->
-  <form id="uploadForm">
-    <label for="fileInput">Upload your drawing (Max: 5MB):</label><br>
-    <input type="file" id="fileInput" accept="image/*"><br><br>
-    <button type="submit">Upload</button>
-  </form>
+  <section id="upload">
+    <h2>Upload Your Artwork</h2>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="image/*" />
+      <button type="submit">Upload</button>
+    </form>
+  </section>
 
-  <h2>Featured Drawings</h2>
-  <div id="drawingGallery"></div>
+  <section id="gallery">
+    <h2>Featured Drawings</h2>
+    <div id="drawingGallery"></div>
+  </section>
 
-  <script>
-    // Maximum file size (5MB in bytes)
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-
-    document.getElementById('uploadForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-
-      if (file) {
-        // Check the file size
-        if (file.size > MAX_FILE_SIZE) {
-          alert('File size exceeds 5MB. Please upload a smaller image.');
-          return; // Stop the upload process
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-          const imageData = event.target.result;
-
-          // Check if the image is a duplicate
-          if (isImageDuplicate(imageData)) {
-            alert('This image has already been uploaded!');
-            return; // Stop if it's a duplicate
-          }
-
-          try {
-            // Save the image to localStorage and update the gallery
-            saveImageToLocalStorage(imageData);
-
-            const img = document.createElement('img');
-            img.src = imageData;
-            img.style.width = '200px';
-            img.style.height = 'auto';
-            document.getElementById('drawingGallery').appendChild(img);
-
-            console.log('Image uploaded successfully!');
-          } catch (error) {
-            console.error('Error saving image:', error);
-            alert('An error occurred while uploading the image. Please try again.');
-          }
-        };
-
-        reader.onerror = function (error) {
-          console.error('Error reading file:', error);
-          alert('There was an issue reading the file. Please try a different file.');
-        };
-
-        reader.readAsDataURL(file); // Start reading the file as Base64
-      } else {
-        alert('Please select a file to upload.');
-      }
-    });
-
-    function saveImageToLocalStorage(imageData) {
-      let images = JSON.parse(localStorage.getItem('images')) || [];
-      images.push(imageData);
-
-      try {
-        localStorage.setItem('images', JSON.stringify(images));
-      } catch (error) {
-        console.error('Error storing image to localStorage:', error);
-        throw new Error('LocalStorage quota exceeded. Try clearing old images.');
-      }
-    }
-
-    function isImageDuplicate(imageData) {
-      let images = JSON.parse(localStorage.getItem('images')) || [];
-      return images.includes(imageData);
-    }
-
-    function loadImagesFromLocalStorage() {
-      const images = JSON.parse(localStorage.getItem('images')) || [];
-      const gallery = document.getElementById('drawingGallery');
-
-      images.forEach(function (imageData) {
-        const img = document.createElement('img');
-        img.src = imageData;
-        img.style.width = '200px';
-        img.style.height = 'auto';
-        gallery.appendChild(img);
-      });
-    }
-
-    // Load images when the page is loaded
-    window.onload = function () {
-      try {
-        loadImagesFromLocalStorage();
-        console.log('Images loaded successfully from localStorage.');
-      } catch (error) {
-        console.error('Error loading images from localStorage:', error);
-      }
-    };
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
