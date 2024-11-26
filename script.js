@@ -1,5 +1,4 @@
-// When the form is submitted, upload the image
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
+document.getElementById('uploadForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
   const fileInput = document.getElementById('fileInput');
@@ -8,62 +7,65 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
   if (file) {
     const reader = new FileReader();
 
-    reader.onload = function(event) {
-      // Get the image data URL (Base64 string)
+    reader.onload = function (event) {
       const imageData = event.target.result;
 
-      // Check if this image is already uploaded
+      // Check if the image is a duplicate
       if (isImageDuplicate(imageData)) {
         alert('This image has already been uploaded!');
-        return;  // Stop if it's a duplicate
+        return;
       }
 
-      // Save the image in localStorage and update the gallery
-      saveImageToLocalStorage(imageData);
+      try {
+        // Save image and update the gallery
+        saveImageToLocalStorage(imageData);
 
-      // Create an image element and append it to the gallery
-      const img = document.createElement('img');
-      img.src = imageData;
-      img.style.width = '200px';
-      img.style.height = 'auto';
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.style.width = '200px';
+        img.style.height = 'auto';
+        document.getElementById('drawingGallery').appendChild(img);
 
-      // Add the image to the gallery
-      const gallery = document.getElementById('drawingGallery');
-      gallery.appendChild(img);
+        console.log('Image uploaded successfully!');
+      } catch (error) {
+        console.error('Error saving image:', error);
+        alert('An error occurred while uploading the image. Please try again.');
+      }
     };
 
-    // Handle any errors while reading the file
-    reader.onerror = function(error) {
-      console.error("Error reading file:", error);
-      alert("There was an issue uploading the image. Please try again.");
+    reader.onerror = function (error) {
+      console.error('Error reading file:', error);
+      alert('There was an issue reading the file. Please try a different file.');
     };
 
-    reader.readAsDataURL(file);  // Start reading the file as Base64
+    reader.readAsDataURL(file);
   } else {
-    alert("Please select a file to upload.");
+    alert('Please select a file to upload.');
   }
 });
 
-// Function to save the image in localStorage
 function saveImageToLocalStorage(imageData) {
   let images = JSON.parse(localStorage.getItem('images')) || [];
   images.push(imageData);
-  localStorage.setItem('images', JSON.stringify(images));
+
+  try {
+    localStorage.setItem('images', JSON.stringify(images));
+  } catch (error) {
+    console.error('Error storing image to localStorage:', error);
+    throw new Error('LocalStorage quota exceeded. Try clearing old images.');
+  }
 }
 
-// Function to check if the image is a duplicate
 function isImageDuplicate(imageData) {
   let images = JSON.parse(localStorage.getItem('images')) || [];
   return images.includes(imageData);
 }
 
-// Function to load images from localStorage
 function loadImagesFromLocalStorage() {
   const images = JSON.parse(localStorage.getItem('images')) || [];
   const gallery = document.getElementById('drawingGallery');
-  
-  // Display all images stored in localStorage
-  images.forEach(function(imageData) {
+
+  images.forEach(function (imageData) {
     const img = document.createElement('img');
     img.src = imageData;
     img.style.width = '200px';
@@ -73,6 +75,11 @@ function loadImagesFromLocalStorage() {
 }
 
 // Load images when the page is loaded
-window.onload = function() {
-  loadImagesFromLocalStorage();
+window.onload = function () {
+  try {
+    loadImagesFromLocalStorage();
+    console.log('Images loaded successfully from localStorage.');
+  } catch (error) {
+    console.error('Error loading images from localStorage:', error);
+  }
 };
