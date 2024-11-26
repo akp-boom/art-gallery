@@ -8,9 +8,18 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
   if (file) {
     const reader = new FileReader();
     reader.onload = function(event) {
+      // Get the image data URL (Base64 string)
+      const imageData = event.target.result;
+
+      // Check if this image is already uploaded
+      if (isImageDuplicate(imageData)) {
+        alert('This image has already been uploaded!');
+        return;  // Stop if it's a duplicate
+      }
+
       // Create an image element and append it to the gallery
       const img = document.createElement('img');
-      img.src = event.target.result;
+      img.src = imageData;
       img.style.width = '200px';
       img.style.height = 'auto';
 
@@ -19,7 +28,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
       gallery.appendChild(img);
 
       // Save the image in localStorage
-      saveImageToLocalStorage(event.target.result);
+      saveImageToLocalStorage(imageData);
     };
     reader.readAsDataURL(file);
   }
@@ -30,6 +39,12 @@ function saveImageToLocalStorage(imageData) {
   let images = JSON.parse(localStorage.getItem('images')) || [];
   images.push(imageData);
   localStorage.setItem('images', JSON.stringify(images));
+}
+
+// Function to check if the image is a duplicate
+function isImageDuplicate(imageData) {
+  let images = JSON.parse(localStorage.getItem('images')) || [];
+  return images.includes(imageData);
 }
 
 // Function to load images from localStorage
