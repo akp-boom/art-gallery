@@ -63,4 +63,6 @@ function loadImagesFromLocalStorage() {
 }
 
 // Load images when the page is loaded
-window.onload = loadImagesFromLocalStorage;
+window.onload = function() {
+  loadImagesFromLocalStorage();
+};
