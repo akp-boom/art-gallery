@@ -1,7 +1,6 @@
-// Constants
+// Maximum file size (5MB in bytes)
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-// Event Listener for the Upload Form
 document.getElementById('uploadForm').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -9,10 +8,10 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
   const file = fileInput.files[0];
 
   if (file) {
-    // Validate file size
+    // Check the file size
     if (file.size > MAX_FILE_SIZE) {
       alert('File size exceeds 5MB. Please upload a smaller image.');
-      return;
+      return; // Stop the upload process
     }
 
     const reader = new FileReader();
@@ -20,17 +19,16 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
     reader.onload = function (event) {
       const imageData = event.target.result;
 
-      // Check for duplicate images
+      // Check if the image is a duplicate
       if (isImageDuplicate(imageData)) {
         alert('This image has already been uploaded!');
-        return;
+        return; // Stop if it's a duplicate
       }
 
       try {
-        // Save image to localStorage
+        // Save the image to localStorage and update the gallery
         saveImageToLocalStorage(imageData);
 
-        // Add image to the gallery
         const img = document.createElement('img');
         img.src = imageData;
         img.style.width = '200px';
@@ -49,46 +47,29 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       alert('There was an issue reading the file. Please try a different file.');
     };
 
-    reader.readAsDataURL(file); // Read file as Base64 string
+    reader.readAsDataURL(file); // Start reading the file as Base64
   } else {
     alert('Please select a file to upload.');
   }
 });
 
-// Function to Save an Image to LocalStorage
 function saveImageToLocalStorage(imageData) {
   let images = JSON.parse(localStorage.getItem('images')) || [];
+  images.push(imageData);
 
   try {
-    images.push(imageData); // Add new image to the list
-    localStorage.setItem('images', JSON.stringify(images)); // Save updated list to localStorage
+    localStorage.setItem('images', JSON.stringify(images));
   } catch (error) {
-    if (isQuotaExceeded(error)) {
-      alert('Storage limit exceeded! Please clear the gallery or reduce image sizes.');
-    } else {
-      console.error('Error storing image:', error);
-      throw error;
-    }
+    console.error('Error storing image to localStorage:', error);
+    throw new Error('LocalStorage quota exceeded. Try clearing old images.');
   }
 }
 
-// Function to Check if an Image is a Duplicate
 function isImageDuplicate(imageData) {
-  const images = JSON.parse(localStorage.getItem('images')) || [];
+  let images = JSON.parse(localStorage.getItem('images')) || [];
   return images.includes(imageData);
 }
 
-// Function to Check if the Storage Quota is Exceeded
-function isQuotaExceeded(e) {
-  if (e) {
-    if (e.code === 22 || e.code === 1014 || e.name === 'QuotaExceededError') {
-      return true;
-    }
-  }
-  return false;
-}
-
-// Function to Load Images from LocalStorage into the Gallery
 function loadImagesFromLocalStorage() {
   const images = JSON.parse(localStorage.getItem('images')) || [];
   const gallery = document.getElementById('drawingGallery');
@@ -102,19 +83,10 @@ function loadImagesFromLocalStorage() {
   });
 }
 
-// Function to Clear the Gallery and LocalStorage
-function clearGallery() {
-  if (confirm('Are you sure you want to clear all images from the gallery?')) {
-    localStorage.removeItem('images'); // Remove all images from localStorage
-    document.getElementById('drawingGallery').innerHTML = ''; // Clear the gallery on the page
-    alert('Gallery cleared!');
-  }
-}
-
-// Load Images When the Page is Loaded
+// Load images when the page is loaded
 window.onload = function () {
   try {
-    loadImagesFromLocalStorage(); // Load persisted images into the gallery
+    loadImagesFromLocalStorage();
     console.log('Images loaded successfully from localStorage.');
   } catch (error) {
     console.error('Error loading images from localStorage:', error);
