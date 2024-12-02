@@ -1,5 +1,6 @@
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const API_KEY = 'e06a1e55f4b625831c198f99c18eb569'; // Your Imgbb API Key
 
 // Event Listener for the Upload Form
 document.getElementById('uploadForm').addEventListener('submit', function (e) {
@@ -20,28 +21,8 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
     reader.onload = function (event) {
       const imageData = event.target.result;
 
-      // Check for duplicate images
-      if (isImageDuplicate(imageData)) {
-        alert('This image has already been uploaded!');
-        return;
-      }
-
-      try {
-        // Save image to localStorage
-        saveImageToLocalStorage(imageData);
-
-        // Add image to the gallery
-        const img = document.createElement('img');
-        img.src = imageData;
-        img.style.width = '200px';
-        img.style.height = 'auto';
-        document.getElementById('drawingGallery').appendChild(img);
-
-        console.log('Image uploaded successfully!');
-      } catch (error) {
-        console.error('Error saving image:', error);
-        alert('An error occurred while uploading the image. Please try again.');
-      }
+      // Upload image to Imgbb
+      uploadImageToImgbb(imageData);
     };
 
     reader.onerror = function (error) {
@@ -55,37 +36,51 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
   }
 });
 
-// Function to Save an Image to LocalStorage
-function saveImageToLocalStorage(imageData) {
-  let images = JSON.parse(localStorage.getItem('images')) || [];
+// Function to Upload Image to Imgbb
+function uploadImageToImgbb(imageData) {
+  const formData = new FormData();
+  formData.append('image', imageData);
 
-  try {
-    images.push(imageData); // Add new image to the list
-    localStorage.setItem('images', JSON.stringify(images)); // Save updated list to localStorage
-  } catch (error) {
-    if (isQuotaExceeded(error)) {
-      alert('Storage limit exceeded! Please clear the gallery or reduce image sizes.');
+  fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const imageUrl = data.data.url; // Get the public image URL from Imgbb
+      console.log('Image uploaded successfully!');
+
+      // Add image to gallery
+      addImageToGallery(imageUrl);
+
+      // Optionally, save the image URL to a list (localStorage or a database)
+      saveImageUrl(imageUrl);
     } else {
-      console.error('Error storing image:', error);
-      throw error;
+      console.error('Error uploading image:', data.error.message);
+      alert('Failed to upload image. Please try again.');
     }
-  }
+  })
+  .catch(error => {
+    console.error('Error with the Imgbb API:', error);
+    alert('An error occurred while uploading the image.');
+  });
 }
 
-// Function to Check if an Image is a Duplicate
-function isImageDuplicate(imageData) {
-  const images = JSON.parse(localStorage.getItem('images')) || [];
-  return images.includes(imageData);
+// Function to Add Image to Gallery
+function addImageToGallery(imageUrl) {
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.style.width = '200px';
+  img.style.height = 'auto';
+  document.getElementById('drawingGallery').appendChild(img);
 }
 
-// Function to Check if the Storage Quota is Exceeded
-function isQuotaExceeded(e) {
-  if (e) {
-    if (e.code === 22 || e.code === 1014 || e.name === 'QuotaExceededError') {
-      return true;
-    }
-  }
-  return false;
+// Function to Save Image URL (For Persistence)
+function saveImageUrl(imageUrl) {
+  let images = JSON.parse(localStorage.getItem('images')) || [];
+  images.push(imageUrl);
+  localStorage.setItem('images', JSON.stringify(images)); // Save URLs to localStorage
 }
 
 // Function to Load Images from LocalStorage into the Gallery
@@ -93,9 +88,9 @@ function loadImagesFromLocalStorage() {
   const images = JSON.parse(localStorage.getItem('images')) || [];
   const gallery = document.getElementById('drawingGallery');
 
-  images.forEach(function (imageData) {
+  images.forEach(function (imageUrl) {
     const img = document.createElement('img');
-    img.src = imageData;
+    img.src = imageUrl;
     img.style.width = '200px';
     img.style.height = 'auto';
     gallery.appendChild(img);
@@ -113,10 +108,6 @@ function clearGallery() {
 
 // Load Images When the Page is Loaded
 window.onload = function () {
-  try {
-    loadImagesFromLocalStorage(); // Load persisted images into the gallery
-    console.log('Images loaded successfully from localStorage.');
-  } catch (error) {
-    console.error('Error loading images from localStorage:', error);
-  }
+  loadImagesFromLocalStorage(); // Load persisted images into the gallery
+  console.log('Images loaded successfully from localStorage.');
 };
